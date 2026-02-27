@@ -1,0 +1,87 @@
+---
+title: 'Assignment 5B: ELO Calculations'
+author: "Kristoff Oliphant"
+date: "2026-02-26"
+output: html_document
+---
+
+# Introduction
+
+We are now in week 5 and for Assignment 5B, we are tying back into the project we did for week 1. We are still using the same chess tournament text file from last week but taking a different approach. We are now implementing the ELO rating system for chess players and must calculate each player's expected score. We’ll then list the five players that overperformed in comparison to their expected score and list another five players that underperformed in comparison to their expected score.
+
+# Planned Workflow
+
+I’ll utilize the cleaned dataset from project 1 and make sure that all player ratings and opponent IDs are accessible. I will then create a function in R to calculate the Elo expectation for the relevant players, using a cited formula of my choosing. I’ll calculate the expected outcome for every player and each game played, and get the sum of those values to find their total expected score. The next step would be to subtract the expected score from the actual total points to see the performance difference. Lastly I’ll want to pick the bottom 5 players that were underperformers and the top 5 overperformers.
+
+# Anticipated data challenges
+
+One major challenge is working with the players that had unplayed “bye” games. The unplayed games can impact the elo rating, so it’s required that unplayed games be excluded to not negatively impact the results. Additionally, I’ll need to use the pre-ratings for both player and opponent to maintain the consistency of the predictive model
+
+**ELO Formula Source:** <https://en.wikipedia.org/wiki/Elo_rating_system> (Mathematical details)
+
+```{r}
+library(tidyverse)
+library(stringr)
+```
+
+```{r}
+calc_expected <- function(player_rtg, opp_rtg) {
+  return(1 / (1+10^((opp_rtg - player_rtg) / 400)))
+}
+```
+
+```{r}
+player_data <- read_csv("tournament_results.csv") %>%
+  mutate(PairID = row_number()) %>%
+  select(PairID, PlayerName, PreRating, TotalPoints)
+```
+
+```{r}
+raw_txt <- readLines("tournamentinfo.txt")
+```
+
+```{r}
+matchups <- data.frame(line = raw_txt) %>%
+  filter(str_detect(line, "^\\s+\\d+ ")) %>%
+mutate(
+  PairID = as.numeric(str_extract(line, "\\d+")),
+  OpponentID = str_extract_all(line, "[WLD]\\s+\\d+")
+) %>%
+  unnest(OpponentID) %>%
+  mutate(
+    OpponentID = as.numeric(str_extract(OpponentID, "\\d+"))
+  )
+```
+
+```{r}
+final_analysis <- matchups %>%
+  left_join(player_data, by = c("PairID" = "PairID")) %>%
+  left_join(player_data %>% select(PairID, PreRating),
+            by = c("OpponentID" = "PairID"),
+            suffix = c("_player", "_opp")) %>%
+  mutate(Expected = calc_expected(PreRating_player, PreRating_opp)) %>%
+  group_by(PlayerName, TotalPoints) %>%
+  summarise(Sum_Expected = sum(Expected, na.rm = TRUE), .groups = 'drop') %>%
+  mutate(Difference = round(TotalPoints - Sum_Expected, 2))
+```
+
+```{r}
+overperformers <- final_analysis %>%
+  arrange(desc(Difference)) %>%
+  head(5)
+```
+
+```{r}
+underperformers <- final_analysis %>%
+  arrange(Difference) %>%
+  head(5)
+```
+
+```{r}
+overperformers
+underperformers
+```
+
+# Findings
+
+After analyzing there's a gap between the predicted and actual outcomes. Aditya Bajaj was the top overperformer and finished with 4.05 points above his Elo expectation. Meanwhile Loren Schwiebert was the top underperformer and finished below his expectation. The model correctly identified players that exceeded or fell short of their pre-tournament projections.

@@ -1,0 +1,18 @@
+---
+title: 'Assignment 5B: ELO Calculations'
+author: "Kristoff Oliphant"
+date: "2026-02-26"
+output: html_document
+---
+
+# Introduction
+
+We are now in week 5 and for Assignment 5B, we are tying back into the project we did for week 1. We are still using the same chess tournament text file from last week but taking a different approach. We are now implementing the ELO rating system for chess players and must calculate each player's expected score. We’ll then list the five players that overperformed in comparison to their expected score and list another five players that underperformed in comparison to their expected score.
+
+# Planned Workflow
+
+I’ll utilize the cleaned dataset from project 1 and make sure that all player ratings and opponent IDs are accessible. I will then create a function in R to calculate the Elo expectation for the relevant players, using a cited formula of my choosing. I’ll calculate the expected outcome for every player and each game played, and get the sum of those values to find their total expected score. The next step would be to subtract the expected score from the actual total points to see the performance difference. Lastly I’ll want to pick the bottom 5 players that were underperformers and the top 5 overperformers.
+
+# Anticipated data challenges
+
+One major challenge is working with the players that had unplayed “bye” games. The unplayed games can impact the elo rating, so it’s required that unplayed games be excluded to not negatively impact the results. Additionally, I’ll need to use the pre-ratings for both player and opponent to maintain the consistency of the predictive model
