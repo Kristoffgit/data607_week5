@@ -1,0 +1,18 @@
+---
+title: "Assignment 5A - Tidying and Transforming Airline Data"
+author: "Kristoff Oliphant"
+date: "2026-02-26"
+output: html_document
+---
+
+# Introduction
+
+We are now in week 5, and for Assignment 5A, we will be analyzing airline arrival data. With the provided dataset about Alaska Airlines and AMWEST Airlines, the goal will be to practice principles of tidy data. I’ll transform the unstructured wide dataset into a long format to compare delays across the five destinations.
+
+# Planned Workflow
+
+For my workflow, I plan to recreate the dataset in its original wide format as a csv file. This is to maintain its intended messy structure with missing information to practice cleaning the data. I’ll then feed the csv into R and utilize dplyr and tidyr to help reshape the data, handle the missing information, and properly perform the analysis as required.
+
+# Anticipated data challenges
+
+Some challenges that I anticipate encountering will be reshaping the dataset from wide to long form and handling the missing values. I will also need to properly convey the delay information through percentages since the difference in the amount of flights both airlines completed can possibly skew the data.

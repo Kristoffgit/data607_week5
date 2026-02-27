@@ -1,0 +1,89 @@
+---
+title: "Assignment 5A - Tidying and Transforming Airline Data"
+author: "Kristoff Oliphant"
+date: "2026-02-26"
+output: html_document
+---
+
+# Introduction
+
+We are now in week 5, and for Assignment 5A, we will be analyzing airline arrival data. With the provided dataset about Alaska Airlines and AM WEST Airlines, the goal will be to practice principles of tidy data. I’ll transform the unstructured wide dataset into a long format to compare delays across the five destinations.
+
+# Planned Workflow
+
+For my workflow, I plan to recreate the dataset in its original wide format as a csv file. This is to maintain its intended messy structure with missing information to practice cleaning the data. I’ll then feed the csv into R and utilize dplyr and tidyr to help reshape the data, handle the missing information, and properly perform the analysis as required.
+
+# Anticipated data challenges
+
+Some challenges that I anticipate encountering will be reshaping the dataset from wide to long form and handling the missing values. I will also need to properly convey the delay information through percentages since the difference in the amount of flights both airlines completed can possibly skew the data.
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+raw_data <- read_csv("airline_delays.csv", show_col_types = FALSE)
+```
+
+```{r}
+raw_data
+```
+
+```{r}
+tidy_data <- raw_data %>%
+  rename(Airline = 1, Status = 2) %>%
+  fill(Airline) %>%
+  filter(!is.na(Status)) %>%
+  pivot_longer(
+    cols = c("Los Angeles", "Phoenix", "San Diego", "San Francisco", "Seattle"),
+    names_to = "City",
+    values_to = "Flight_Count"
+  )
+```
+
+```{r}
+tidy_data
+```
+# Cleanup
+
+To tidy the dataset, I used rename to give headers to unnamed columns. I then used fill to carry the Airline names down into the delayed rows that were empty. After I filtered out the blank separator row, I used pivot_longer to transform the city columns to city. This helped convert the data from wide to a long and orderly format.
+
+# Analysis
+
+```{r}
+overall_analysis <- tidy_data %>%
+  group_by(Airline, Status) %>%
+  summarise(Total_Flights = sum(Flight_Count), .groups = 'drop') %>%
+  group_by(Airline) %>%
+  mutate(Percentage = round(Total_Flights / sum(Total_Flights) * 100, 2))
+```
+
+```{r}
+overall_analysis
+```
+
+```{r}
+city_analysis <- tidy_data %>%
+  group_by(Airline, City) %>%
+  mutate(Total_In_City = sum(Flight_Count)) %>%
+  filter(Status == "delayed") %>%
+  mutate(Delay_Percentage = round(Flight_Count / Total_In_City * 100, 2)) %>%
+  select(Airline, City, Delay_Percentage)
+```
+
+```{r}
+city_analysis
+```
+
+```{r}
+ggplot(city_analysis, aes(x = City, y = Delay_Percentage, fill = Airline)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Arrival Delay Percentage by City",
+       y = "Percentage Delayed",
+       x = "City") +
+  theme_minimal()
+```
+
+# Conclusion
+
+From what I've noticed assessing the data, AM WEST has a lower overall delay rate. However, Alaska performs better in each city with a lower delay percentage. It appears that the difference maker that gives the illusion AM WEST has the lower delay as a whole is in phoenix. Phoenix it appears to be a low delay city in general when it comes to flights operating there.
